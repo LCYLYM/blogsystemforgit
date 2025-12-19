@@ -4,16 +4,81 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Links - Poly-Dimension Blog</title>
-  <link href="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css" rel="stylesheet" />
-  <style>body{box-sizing:border-box;max-width:900px;margin:20px auto;padding:45px;font-family:sans-serif}a{text-decoration:none}</style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body{min-height:100vh;overflow-x:hidden;cursor:none;transition:background-color .8s cubic-bezier(.22,1,.36,1),color .5s ease}
+    ::-webkit-scrollbar{width:0px}
+    #sprite-container{position:fixed;top:0;left:0;pointer-events:none;z-index:9999;will-change:transform}
+    .sprite-body{width:20px;height:20px;background:#fff;border-radius:50%;box-shadow:0 0 10px rgba(255,255,255,.8),0 0 20px var(--accent);transition:all .3s ease;position:relative}
+    .sprite-trail{position:absolute;top:50%;left:50%;width:100%;height:100%;border-radius:50%;background:inherit;opacity:.5;transform:translate(-50%,-50%) scale(1.5);filter:blur(4px)}
+    .theme-ethereal{background:#0a0a12;color:#e2e8f0;font-family:'Inter',sans-serif;--accent:#60a5fa;--card-bg:rgba(255,255,255,.02);--border:rgba(255,255,255,.08)}
+    .theme-cyber{background:#050505;color:#00ff41;font-family:'Space Mono',monospace;--accent:#ff00ff;--border:#008F11}
+    .theme-oil{background:#e6dace;color:#1a1a1a;font-family:'Playfair Display',serif;--accent:#e07a5f}
+    .card{background:var(--card-bg,rgba(255,255,255,.03));border:1px solid var(--border,rgba(255,255,255,.08));border-radius:24px;overflow:hidden}
+    @media (max-width:640px){body{cursor:auto}#sprite-container{display:none}}
+  </style>
 </head>
-<body>
-  <div class="Box p-4">
-    <h1 class="h1 mb-2">友情链接</h1>
-    <p class="color-fg-muted">这是兜底页面：当你还没创建带 <b>link</b> 标签的 Issue 时先用它。</p>
-    <p>建议用 Issue 内容写成列表：</p>
-    <pre class="p-3">- [站点名](https://example.com) - 一句话介绍</pre>
-    <p><a class="btn" href="./index.html">返回首页</a></p>
-  </div>
+<body class="theme-ethereal" id="app">
+  <div id="sprite-container" aria-hidden="true"><div class="sprite-body"><div class="sprite-trail"></div></div></div>
+
+  <nav class="fixed top-0 w-full z-40 px-8 py-6 flex justify-between items-center backdrop-blur-sm">
+    <div class="text-2xl font-black tracking-tighter cursor-pointer select-none" onclick="setTheme('ethereal')">
+      <span id="logo-text">VOID.</span>
+    </div>
+    <div class="flex gap-3 items-center">
+      <div class="flex gap-2 items-center bg-white/5 backdrop-blur-md px-2 py-2 rounded-full border border-white/10 shadow-2xl">
+        <button onclick="setTheme('ethereal')" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition" title="虚空流体"><i data-lucide="droplets" class="w-5 h-5"></i></button>
+        <button onclick="setTheme('cyber')" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition" title="赛博故障"><i data-lucide="terminal-square" class="w-5 h-5"></i></button>
+        <button onclick="setTheme('oil')" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition" title="印象派油画"><i data-lucide="palette" class="w-5 h-5"></i></button>
+      </div>
+      <a href="./index.html" class="px-4 py-2 rounded-full border border-white/10 hover:bg-white/5 transition text-sm">
+        <span class="inline-flex items-center gap-2"><i data-lucide="home" class="w-4 h-4"></i>Home</span>
+      </a>
+    </div>
+  </nav>
+
+  <main class="container mx-auto px-6 pt-32 pb-24">
+    <header class="mb-10">
+      <h1 class="text-4xl md:text-6xl font-black tracking-tight">友情链接</h1>
+      <p class="opacity-70 mt-4">这是兜底页面：当你还没创建带 <b>link</b> 标签的 Issue 时先用它。</p>
+    </header>
+
+    <div class="card p-6 md:p-10 space-y-4">
+      <p class="opacity-90">建议用 Issue 内容写成列表：</p>
+      <pre class="p-4 rounded-xl border border-white/10 bg-black/30 overflow-auto">- [站点名](https://example.com) - 一句话介绍</pre>
+      <p class="opacity-70">创建一个 Issue，给它加第一个标签：<b>link</b>，Actions 跑完后会覆盖成真正的友链页。</p>
+    </div>
+  </main>
+
+  <script>
+    const body = document.getElementById('app');
+    const THEME_KEY = 'pd_theme';
+    const themes = {ethereal:{logo:'VOID.'},cyber:{logo:'>_ROOT'},oil:{logo:'MUSEUM.'}};
+    function applyTheme(t){body.className = `theme-${t}`; localStorage.setItem(THEME_KEY,t); const logo=document.getElementById('logo-text'); if(logo && themes[t]) logo.textContent = themes[t].logo; if(window.lucide) window.lucide.createIcons();}
+    window.setTheme = applyTheme;
+    applyTheme(localStorage.getItem(THEME_KEY) || 'ethereal');
+
+    const sprite = document.getElementById('sprite-container');
+    let mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
+    let spriteX = mouseX, spriteY = mouseY;
+    let velX = 0, velY = 0;
+    const drag = 0.15, spring = 0.1;
+    document.addEventListener('mousemove',(e)=>{mouseX=e.clientX;mouseY=e.clientY;},{passive:true});
+    function tick(){
+      const dx=mouseX-spriteX, dy=mouseY-spriteY;
+      velX += dx*spring; velY += dy*spring;
+      velX *= (1-drag); velY *= (1-drag);
+      spriteX += velX; spriteY += velY;
+      const speed=Math.sqrt(velX*velX+velY*velY);
+      const angle=Math.atan2(velY,velX)*180/Math.PI;
+      const stretch=Math.min(1+speed/50,1.5);
+      const squash=1/stretch;
+      if(sprite) sprite.style.transform = `translate(${spriteX}px, ${spriteY}px) translate(-50%, -50%) rotate(${angle}deg) scale(${stretch}, ${squash})`;
+      requestAnimationFrame(tick);
+    }
+    tick();
+  </script>
 </body>
 </html>

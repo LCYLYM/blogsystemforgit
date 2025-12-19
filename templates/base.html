@@ -4,6 +4,13 @@
     <meta content="text/html; charset=utf-8" http-equiv="content-type" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Tailwind UI (from blogui.md) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+    <!-- Keep Primer for markdown-body rendering (post content) -->
     {{ blogBase['primerCSS'] }}
     {{ blogBase['allHead'] }}
     <link rel="icon" href="{{ blogBase['faviconUrl'] }}">
@@ -16,75 +23,212 @@
     {% block head %}{% endblock %}
 </head>
 <style>
-body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
-#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
-#footer {margin-top:64px; text-align: center;font-size: small;}
-
-/* =====================
-   “注视鼠标”左侧插画
-   ===================== */
-#gazeBuddy{
-    position: fixed;
-    left: 18px;
-    bottom: 18px;
-    width: 176px;
-    height: 176px;
-    z-index: 999;
-    pointer-events: none;
-    opacity: 0.95;
-    filter: drop-shadow(0 8px 20px rgba(0,0,0,.18));
+/* === Core base (from blogui.md) === */
+body {
+    transition: background-color 0.8s cubic-bezier(0.22, 1, 0.36, 1), color 0.5s ease;
+    overflow-x: hidden;
+    min-height: 100vh;
+    cursor: none;
 }
-#gazeBuddy .gb-card{
+::-webkit-scrollbar { width: 0px; }
+
+.svg-filters { position: absolute; width: 0; height: 0; pointer-events: none; }
+
+/* Cursor sprite */
+#sprite-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    will-change: transform;
+}
+.sprite-body {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px var(--accent);
+    transition: all 0.3s ease;
+    position: relative;
+}
+.sprite-trail {
+    position: absolute;
+    top: 50%;
+    left: 50%;
     width: 100%;
     height: 100%;
-    border-radius: 16px;
-    background: var(--color-canvas-default);
-    border: 1px solid var(--borderColor-muted, var(--color-border-muted));
+    border-radius: 50%;
+    background: inherit;
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1.5);
+    filter: blur(4px);
 }
-#gazeBuddy svg{display:block; width:100%; height:100%;}
 
-@media (max-width: 900px){
-    #gazeBuddy{display:none;}
+/* Themes */
+.theme-ethereal {
+    background: #0a0a12;
+    color: #e2e8f0;
+    font-family: 'Inter', sans-serif;
+    --accent: #60a5fa;
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --border: rgba(255, 255, 255, 0.08);
+}
+.theme-ethereal .bg-blob { display: block; opacity: 0.5; }
+
+.theme-cyber {
+    background: #050505;
+    color: #00ff41;
+    font-family: 'Space Mono', monospace;
+    --accent: #ff00ff;
+    --border: #008F11;
+}
+.theme-cyber::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 50;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+}
+body.theme-cyber #sprite-container .sprite-body {
+    background: #0f0;
+    border-radius: 0;
+    width: 16px;
+    height: 16px;
+    box-shadow: 0 0 0 2px black, 0 0 0 4px #0f0;
+    animation: sprite-glitch 0.2s infinite;
+}
+@keyframes sprite-glitch {
+    0% { transform: translate(0,0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(2px, -2px); }
+    60% { transform: translate(-2px, -2px); }
+    80% { transform: translate(2px, 2px); }
+    100% { transform: translate(0,0); }
+}
+
+.theme-oil {
+    background: #e6dace;
+    color: #1a1a1a;
+    font-family: 'Playfair Display', serif;
+    --accent: #e07a5f;
+    background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+}
+body.theme-oil #sprite-container .sprite-body {
+    background: #ffaa00;
+    width: 30px;
+    height: 30px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    filter: url(#oilFilterSmall);
+}
+
+/* Layout + cards */
+.bg-blob {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    filter: blur(100px);
+    z-index: -1;
+    opacity: 0;
+    border-radius: 50%;
+    animation: float 15s infinite ease-in-out;
+    transition: opacity 1s;
+}
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+.card {
+    background: var(--card-bg, rgba(255,255,255,0.03));
+    border: 1px solid var(--border, rgba(255,255,255,0.08));
+    border-radius: 24px;
+    overflow: hidden;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease, border-color 0.6s ease;
+}
+.theme-ethereal .card:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+    border-color: rgba(255,255,255,0.2);
+}
+.theme-cyber .card {
+    background: #000;
+    border: 1px solid var(--border);
+    position: relative;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+}
+.theme-cyber .card:hover {
+    box-shadow: -4px 4px 0 var(--accent);
+    transform: translate(2px, -2px);
+}
+.theme-oil .card {
+    background: #f4f1ea;
+    box-shadow: 10px 10px 20px rgba(0,0,0,0.1), -5px -5px 15px rgba(255,255,255,0.8);
+    border: 8px solid white;
+    border-bottom-width: 24px;
+    transform: rotate(0deg);
+    transition: all 0.4s ease;
+}
+.theme-oil .card:nth-child(even) { transform: rotate(1deg); }
+.theme-oil .card:nth-child(odd) { transform: rotate(-1deg); }
+.theme-oil .card:hover {
+    transform: rotate(0deg) scale(1.05);
+    z-index: 10;
+    box-shadow: 15px 15px 30px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 640px){
+    body{cursor:auto;}
+    #sprite-container{display:none;}
 }
 </style>
 {% block style %}{% endblock %}
 
-<body>
-    <div id="gazeBuddy" aria-hidden="true">
-        <div class="gb-card">
-            <svg viewBox="0 0 176 176" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="gbBg" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0" stop-color="var(--color-canvas-subtle)"/>
-                        <stop offset="1" stop-color="var(--color-canvas-default)"/>
-                    </linearGradient>
-                </defs>
+<body class="theme-ethereal" id="app">
+    <!-- SVG Filters Definition (Hidden) -->
+    <svg class="svg-filters">
+        <defs>
+            <filter id="oilFilterSmall">
+                <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="2" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" />
+            </filter>
+        </defs>
+    </svg>
 
-                <rect x="0" y="0" width="176" height="176" rx="16" fill="url(#gbBg)"/>
-
-                <circle cx="88" cy="92" r="52" fill="var(--color-canvas-inset)" stroke="var(--borderColor-muted, var(--color-border-muted))"/>
-                <path d="M58 78c10-10 20-14 30-14s20 4 30 14" fill="none" stroke="var(--color-fg-muted)" stroke-width="4" stroke-linecap="round"/>
-
-                <g id="gbEyes">
-                    <g id="gbEyeL" transform="translate(62 92)">
-                        <ellipse cx="0" cy="0" rx="16" ry="12" fill="var(--color-canvas-default)" stroke="var(--borderColor-muted, var(--color-border-muted))"/>
-                        <circle id="gbPupilL" cx="0" cy="0" r="5" fill="var(--color-fg-default)"/>
-                    </g>
-                    <g id="gbEyeR" transform="translate(114 92)">
-                        <ellipse cx="0" cy="0" rx="16" ry="12" fill="var(--color-canvas-default)" stroke="var(--borderColor-muted, var(--color-border-muted))"/>
-                        <circle id="gbPupilR" cx="0" cy="0" r="5" fill="var(--color-fg-default)"/>
-                    </g>
-                </g>
-
-                <path d="M72 122c8 8 24 8 32 0" fill="none" stroke="var(--color-fg-default)" stroke-width="4" stroke-linecap="round"/>
-                <text x="88" y="160" text-anchor="middle" font-size="12" fill="var(--color-fg-muted)">Look at you.</text>
-            </svg>
+    <!-- Cursor sprite -->
+    <div id="sprite-container" aria-hidden="true">
+        <div class="sprite-body">
+            <div class="sprite-trail"></div>
         </div>
     </div>
 
-    <div id="header">{% block header %}{% endblock %}</div>
-    <div id="content">{% block content %}{% endblock %}</div>
-    <div id="footer">{% include 'footer.html' %}</div>
+    <!-- Background blobs (ethereal) -->
+    <div class="bg-blob bg-blue-600 top-[-20%] left-[-10%]"></div>
+    <div class="bg-blob bg-purple-600 bottom-[-20%] right-[-10%]"></div>
+    <div class="bg-blob bg-emerald-500 top-[40%] left-[30%] w-96 h-96 mix-blend-overlay"></div>
+
+    <!-- Navbar (page-specific content injected) -->
+    <nav class="fixed top-0 w-full z-40 px-8 py-6 flex justify-between items-center transition-all duration-500 backdrop-blur-sm" id="navbar">
+        {% block header %}{% endblock %}
+    </nav>
+
+    <!-- Main content -->
+    <main class="container mx-auto px-6 pt-32 pb-24 relative z-10" id="main">
+        {% block content %}{% endblock %}
+        <footer class="py-12 text-center opacity-40 text-xs">
+            {% include 'footer.html' %}
+        </footer>
+    </main>
 </body>
 <script>
 var IconList={{ IconList }};
@@ -117,42 +261,121 @@ function utterancesTheme(theme){
 if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
 {%- endif %}
 
-/* =====================
-   鼠标注视逻辑：移动瞳孔
-   ===================== */
+// =========================
+// blogui.md Theme + Sprite
+// =========================
 (function(){
-    const eyeL = document.getElementById('gbEyeL');
-    const eyeR = document.getElementById('gbEyeR');
-    const pupilL = document.getElementById('gbPupilL');
-    const pupilR = document.getElementById('gbPupilR');
+    // Theme
+    const body = document.getElementById('app');
+    const THEME_KEY = 'pd_theme';
+    const themes = {
+        ethereal: {
+            logo: 'VOID.',
+            title: 'BEYOND<br>REALITY',
+            desc: '探索数字边界之外的存在。当代码凝固成艺术，当逻辑在油彩中溶解。'
+        },
+        cyber: {
+            logo: '>_ROOT',
+            title: 'SYSTEM<br>OVERRIDE',
+            desc: 'DETECTED UNAUTHORIZED ACCESS. REALITY PROTOCOL CORRUPTED. INITIALIZING...'
+        },
+        oil: {
+            logo: 'MUSEUM.',
+            title: 'STARRY<br>DREAMS',
+            desc: '生活不仅是眼前的苟且，还有诗和远方。在这里，每一行代码都是画布上的笔触。'
+        }
+    };
 
-    if(!eyeL || !eyeR || !pupilL || !pupilR) return;
+    function applyTheme(themeName){
+        if(!body) return;
+        body.className = `theme-${themeName}`;
+        localStorage.setItem(THEME_KEY, themeName);
 
-    function clamp(v, min, max){
-        return Math.max(min, Math.min(max, v));
+        const config = themes[themeName];
+        if(!config) return;
+
+        const logo = document.getElementById('logo-text');
+        const title = document.getElementById('hero-title');
+        const desc = document.getElementById('hero-desc');
+
+        // Only exists on index
+        if(logo) logo.innerHTML = config.logo;
+        if(title) title.innerHTML = config.title;
+        if(desc) desc.innerHTML = config.desc;
     }
 
-    function setPupil(pupil, eyeEl, clientX, clientY){
-        const rect = eyeEl.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
+    window.setTheme = applyTheme;
+    const saved = localStorage.getItem(THEME_KEY) || 'ethereal';
+    applyTheme(saved);
 
-        const dx = clientX - cx;
-        const dy = clientY - cy;
-        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-
-        const maxOffset = 6;
-        const ox = clamp(dx / dist, -1, 1) * maxOffset;
-        const oy = clamp(dy / dist, -1, 1) * maxOffset;
-
-        pupil.setAttribute('cx', ox.toFixed(2));
-        pupil.setAttribute('cy', oy.toFixed(2));
+    // Lucide
+    if(window.lucide && typeof window.lucide.createIcons === 'function'){
+        window.lucide.createIcons();
     }
 
-    window.addEventListener('mousemove', (e) => {
-        setPupil(pupilL, eyeL, e.clientX, e.clientY);
-        setPupil(pupilR, eyeR, e.clientX, e.clientY);
+    // Sprite physics
+    const sprite = document.getElementById('sprite-container');
+    if(!sprite) return;
+
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let spriteX = mouseX;
+    let spriteY = mouseY;
+    let velX = 0;
+    let velY = 0;
+    const drag = 0.15;
+    const spring = 0.1;
+
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
     }, {passive:true});
+
+    function animateSprite(){
+        const dx = mouseX - spriteX;
+        const dy = mouseY - spriteY;
+
+        velX += dx * spring;
+        velY += dy * spring;
+
+        velX *= (1 - drag);
+        velY *= (1 - drag);
+
+        spriteX += velX;
+        spriteY += velY;
+
+        const speed = Math.sqrt(velX*velX + velY*velY);
+        const angle = Math.atan2(velY, velX) * 180 / Math.PI;
+        const stretch = Math.min(1 + speed / 50, 1.5);
+        const squash = 1 / stretch;
+
+        sprite.style.transform = `translate(${spriteX}px, ${spriteY}px) translate(-50%, -50%) rotate(${angle}deg) scale(${stretch}, ${squash})`;
+        requestAnimationFrame(animateSprite);
+    }
+    animateSprite();
+
+    // Hover reactions
+    function setSpriteActive(active){
+        const bodyEl = sprite.querySelector('.sprite-body');
+        if(!bodyEl) return;
+        if(active){
+            bodyEl.style.transform = 'scale(1.5)';
+            bodyEl.style.background = 'var(--accent)';
+        }else{
+            bodyEl.style.transform = 'scale(1)';
+            bodyEl.style.background = '';
+        }
+    }
+    document.addEventListener('mouseover', (e) => {
+        const t = e.target;
+        if(!t) return;
+        if(t.closest && t.closest('a, button, .card')) setSpriteActive(true);
+    });
+    document.addEventListener('mouseout', (e) => {
+        const t = e.target;
+        if(!t) return;
+        if(t.closest && t.closest('a, button, .card')) setSpriteActive(false);
+    });
 })();
 
 console.log("\n %c Gmeek {{ blogBase['GMEEK_VERSION'] }} https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
