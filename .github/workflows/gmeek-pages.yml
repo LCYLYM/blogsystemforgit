@@ -20,6 +20,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      PAGES_TOKEN_EFFECTIVE: ${{ github.token }}
+      PAGES_ENABLEMENT: "false"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +37,7 @@ jobs:
 
       - name: Generate site
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
@@ -44,12 +47,18 @@ jobs:
             python Gmeek.py "${GH_TOKEN}" "${REPO}" --issue_number "${ISSUE_NUMBER}"
           fi
 
-      - name: Check Pages enabled (no PAT)
-        if: ${{ secrets.PAGES_TOKEN == '' }}
+      - name: Resolve Pages token/enablement
         env:
-          GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
+          PAGES_TOKEN: ${{ secrets.PAGES_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
+          if [ -n "${PAGES_TOKEN}" ]; then
+            echo "PAGES_TOKEN_EFFECTIVE=${PAGES_TOKEN}" >> "$GITHUB_ENV"
+            echo "PAGES_ENABLEMENT=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
           code=$(curl -s -o /dev/null -w "%{http_code}" \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${GH_TOKEN}" \
@@ -60,11 +69,14 @@ jobs:
             exit 1
           fi
 
+          echo "PAGES_TOKEN_EFFECTIVE=${GH_TOKEN}" >> "$GITHUB_ENV"
+          echo "PAGES_ENABLEMENT=false" >> "$GITHUB_ENV"
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
-          token: ${{ secrets.PAGES_TOKEN || github.token }}
-          enablement: ${{ secrets.PAGES_TOKEN != '' }}
+          token: ${{ env.PAGES_TOKEN_EFFECTIVE }}
+          enablement: ${{ env.PAGES_ENABLEMENT }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
