@@ -44,8 +44,27 @@ jobs:
             python Gmeek.py "${GH_TOKEN}" "${REPO}" --issue_number "${ISSUE_NUMBER}"
           fi
 
+      - name: Check Pages enabled (no PAT)
+        if: ${{ secrets.PAGES_TOKEN == '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            "https://api.github.com/repos/${REPO}/pages")
+          if [ "${code}" = "404" ]; then
+            echo "::error::GitHub Pages 还没启用：请到 Settings > Pages > Build and deployment > Source 选择 GitHub Actions。"
+            echo "::error::或者创建一个具备 Pages+Administration 写权限的 PAT，保存为仓库 Secrets: PAGES_TOKEN，然后重跑。"
+            exit 1
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          token: ${{ secrets.PAGES_TOKEN || github.token }}
+          enablement: ${{ secrets.PAGES_TOKEN != '' }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
