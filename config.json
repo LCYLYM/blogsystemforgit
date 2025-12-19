@@ -1,0 +1,18 @@
+{
+  "title": "Poly-Dimension Blog | 多维视界",
+  "subTitle": "基于 GitHub Issues + GitHub Pages 的静态博客。",
+  "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4",
+  "i18n": "CN",
+  "UTC": 8,
+  "themeMode": "manual",
+  "dayTheme": "light",
+  "nightTheme": "dark",
+  "urlMode": "pinyin",
+  "onePageListNum": 15,
+  "singlePage": ["about", "link"],
+  "exlink": {
+    "github": "https://github.com/"
+  },
+  "needComment": 1,
+  "showPostSource": 1
+}
