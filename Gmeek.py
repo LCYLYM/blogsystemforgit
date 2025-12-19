@@ -9,6 +9,7 @@ import urllib
 import requests
 import argparse
 import html
+
 from github import Github
 from xpinyin import Pinyin
 from feedgen.feed import FeedGenerator
